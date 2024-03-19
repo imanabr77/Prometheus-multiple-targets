@@ -1,0 +1,88 @@
+---
+kind: "StatefulSet"
+apiVersion: "apps/v1"
+metadata:
+  name: prometheus
+  namespace: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  serviceName: prometheus
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.44.0
+        args:
+          - --config.file=/etc/prometheus/prometheus.yml
+          - --storage.tsdb.path=/prometheus
+          - --storage.tsdb.retention.size=88GB
+          - --storage.tsdb.max-block-duration=2h
+          - --storage.tsdb.min-block-duration=2h
+          - --web.enable-admin-api
+          - --web.enable-lifecycle
+          - --web.external-url=YOUR_ROUTE
+
+        ports:
+          - containerPort: 9090
+            name: http
+            protocol: TCP
+
+        volumeMounts:
+        - name: data
+          mountPath: /prometheus
+        - name: conf
+          mountPath: /etc/prometheus/
+        - name: rules
+          mountPath: /etc/prometheus/rules/
+        - name: file-sd
+          mountPath: /etc/prometheus/file_sd/
+
+
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: http
+          initialDelaySeconds: 5
+          timeoutSeconds: 60
+
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: http
+          initialDelaySeconds: 5
+          timeoutSeconds: 60
+
+        resources:
+          limits:
+            memory: 6Gi
+            cpu: 3
+          requests:
+            memory: 1Gi
+            cpu: 200m
+      volumes:
+        - name: conf
+          configMap:
+            name: prometheus-conf
+        - name: rules
+          configMap:
+            name: prometheus-rules
+        - name: file-sd
+          configMap:
+            name: prometheus-file-sd
+            
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "block-storage-standard"
+      resources:
+        requests:
+          storage: 100Gi

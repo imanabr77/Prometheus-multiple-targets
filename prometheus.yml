@@ -1,0 +1,47 @@
+global:
+  scrape_interval:     60s 
+  evaluation_interval: 60s 
+  external_labels:
+    cluster: prometheus
+    replica: '0'
+
+alerting:
+  alert_relabel_configs:
+  - regex: 'replica'
+    action: labeldrop
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager_TARGET:9093
+
+rule_files:
+- 'rules/*.yml'
+
+scrape_configs:
+
+
+  - job_name: mysql_exporter
+    scrape_interval: 60s
+    scrape_timeout:  30s
+    scheme: http
+    metrics_path: "/metrics"
+    file_sd_configs:
+      - files:
+        - 'file_sd/mysql_targets.yml'
+
+  - job_name: postgresql_exporter
+    scrape_interval: 1m
+    scrape_timeout: 30s
+    metrics_path: "/metrics"
+    scheme: http
+    file_sd_configs:
+      - files:
+        - 'file_sd/postgres_targets.yml'
+      
+  - job_name: mongodb_exporter
+    scrape_interval: 1m
+    scrape_timeout: 30s
+    metrics_path: "/metrics"
+    file_sd_configs:
+      - files:
+        - 'file_sd/mongodb_targets.yml'
