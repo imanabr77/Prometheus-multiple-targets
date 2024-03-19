@@ -1,0 +1,28 @@
+groups:
+- name: PostgresAlerts
+  rules:
+  - alert: PostgresqlDown
+    expr: pg_up == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Postgresql down or exporter user cannot collect data"
+      description: "Postgresql instance <b>{{ $labels.instance }}</b> is down <br>"
+
+  - alert: PostgresqlTooManyConnections
+    expr: sum by (datname) (pg_stat_activity_count{datname!~"template.*|postgres"}) > pg_settings_max_connections * 0.9
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Postgresql too many connections"
+      description: "PostgreSQL instance <b>{{ $labels.instance }}</b> has too many connections<br>  VALUE = <b>{{ $value }}</b><br>"
+  - alert: PostgresqlDeadLocks
+    expr: rate(pg_stat_database_deadlocks{datname!~"template.*|postgres"}[2m]) > 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Postgresql dead locks"
+      description: "PostgreSQL <b>{{ $labels.instance }}</b> has dead-locks<br>  VALUE = <b>{{ $value }}</b><br>"

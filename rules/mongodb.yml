@@ -1,0 +1,28 @@
+groups:
+- name: MongodbAlerts
+  rules:
+    - alert: MongoDBDown
+      expr: mongodb_up == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "MongoDB instance is down or exporter user cannot collect data"
+        description: "<b>{{ $labels.instance }}</b> <br>"
+    - alert: MongodbReplicationLag
+      expr: avg(mongodb_mongod_replset_member_optime_date{state="PRIMARY"}) - avg(mongodb_mongod_replset_member_optime_date{state="SECONDARY"}) > 10
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "MongoDB replication lag"
+        description: "<b>{{ $labels.instance }}</b> replication lag is more than 10s: <b>{{ $value | humanizeDuration }}</b><br>"
+
+    - alert: MongodbReplicationStatus3
+      expr: mongodb_mongod_replset_member_state == 3
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "MongoDB replication Status 3"
+        description: "<b>{{ $labels.name }}</b> : Replication set member either perform startup self-checks, or transition from completing a rollback or resync<br>"

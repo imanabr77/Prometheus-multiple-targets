@@ -1,0 +1,29 @@
+groups:
+- name: MysqlDBStatus
+  rules:
+  - alert: MysqlDown
+    expr: mysql_up == 0
+    for: 180s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Mysql instance is Down or exporter user cannot collect data"
+      description: "<b>{{ $labels.instance }}<b></br>"
+
+  - alert: MysqlTooManyConnections
+    expr: (avg by (instance) (max_over_time(mysql_global_status_threads_connected[5m]))) and (avg by (instance) (max_over_time(mysql_global_status_threads_connected[5m])) / avg by (instance) (mysql_global_variables_max_connections) * 100 > 80)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "MySQL too many connections"
+      description: "More than 80% of MySQL connections are in use on <b> {{ $labels.instance }} </b> :<b>{{ $value }}</b><br>"
+
+  - alert: MysqlHighThreadsRunning
+    expr: avg by (instance) (max_over_time(mysql_global_status_threads_running[5m])) / avg by (instance) (mysql_global_variables_max_connections) * 100 > 60
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "MySQL high threads running "
+      description: "More than 60% of MySQL connections are in running state on <b> {{ $labels.instance }} </b><br>VALUE = <b>{{ $value }}</b><br>"
