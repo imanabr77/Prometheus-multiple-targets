@@ -6,5 +6,5 @@ A Prometheus has several different targets configured specifically for the datab
 
 
 
-Using the SD_config feature in Prometheus, several different targets are introduced to Prometheus under the title of separate targets.
-You have the possibility to deploy your Prometheus inside Kubernetes or OKD using prepared manifests.
+Using the SD_config feature in Prometheus, several different targets are introduced under the title of separate targets.
+You can deploy your Prometheus on Kubernetes or OKD using prepared manifests.
